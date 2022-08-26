@@ -3,22 +3,26 @@ import config
 import telebot
 import pandas as pd
 import datetime
+import logging
 
 token = config.token
 bot = telebot.TeleBot(token)
 
-nakshatra = pd.read_csv('Nakshatra.csv', delimiter=';')
-nakshatra_key = pd.read_csv('Nakshatra_key.csv', delimiter=';')
-var_key = pd.read_csv('var_key.csv', delimiter=';')
-tithi = pd.read_csv('tithi.csv', delimiter=';')
-tithi_key = pd.read_csv('moon_key.csv', delimiter=';')
-yoga = pd.read_csv('yoga.csv', delimiter=';')
-yoga_key = pd.read_csv('yoga_key.csv', delimiter=';')
-carana = pd.read_csv('carana.csv', delimiter=';')
-carana_key = pd.read_csv('carana_key.csv', delimiter=';')
-sign = pd.read_csv('sign.csv', delimiter=';')
-sign_key = pd.read_csv('sign_key.csv', delimiter=';')
-sun_sign = pd.read_csv('sun_sign.csv', delimiter=';')
+logging.basicConfig(filename='bot_log.log', encoding='utf-8',format='%(asctime)s %(message)s', level=logging.INFO)
+logging.info('EXIT')
+
+nakshatra = pd.read_csv('res/Nakshatra.csv', delimiter=';')
+nakshatra_key = pd.read_csv('res/Nakshatra_key.csv', delimiter=';')
+var_key = pd.read_csv('res/var_key.csv', delimiter=';')
+tithi = pd.read_csv('res/tithi.csv', delimiter=';')
+tithi_key = pd.read_csv('res/moon_key.csv', delimiter=';')
+yoga = pd.read_csv('res/yoga.csv', delimiter=';')
+yoga_key = pd.read_csv('res/yoga_key.csv', delimiter=';')
+carana = pd.read_csv('res/carana.csv', delimiter=';')
+carana_key = pd.read_csv('res/carana_key.csv', delimiter=';')
+sign = pd.read_csv('res/sign.csv', delimiter=';')
+sign_key = pd.read_csv('res/sign_key.csv', delimiter=';')
+sun_sign = pd.read_csv('res/sun_sign.csv', delimiter=';')
 
 
 def today():
@@ -270,8 +274,10 @@ def start_message(message):
                    telebot.types.KeyboardButton(text='☀️ Прогноз на завтра'))
         markup.row(telebot.types.KeyboardButton(text='🌼 Другая дата'),
                    telebot.types.KeyboardButton(text='🔭 О ведической астрологии'))
-        bot.send_message(
-            message.chat.id, text=f"Привет {message.from_user.first_name}! Я *АстроБот* 😇, расскажу какой сегодня день! Выбери, что тебе интересно узнать прямо сейчас!", reply_markup=markup, parse_mode='Markdown')
+        text=f"Привет {message.from_user.first_name}! Я *АстроБот* 😇, расскажу какой сегодня день! Выбери, что тебе интересно узнать прямо сейчас!"
+        with open('res/photo_2022-08-25_15-12-28.jpg', 'rb') as photo:
+            bot.send_photo(message.chat.id, photo, caption=text, reply_markup=markup, parse_mode='Markdown')
+
     else:
         bot.send_message(
             message.chat.id, f'Привет, {message.from_user.first_name}!')
@@ -283,7 +289,7 @@ def start_message(message):
         markup.add(button1, button2)
         bot.send_message(
             message.chat.id, '☘️ Для продолжения работы подпишитесь на канал по ведической астрологии Astro-analysis', reply_markup=markup)
-
+    logging.info(f'Подписчик {message.from_user.first_name} {message.from_user.last_name}, id - {message.from_user.id}  start.')
 
 @bot.message_handler(content_types='text')
 def message_reply(message):
@@ -350,9 +356,14 @@ def message_reply(message):
         else:
             answer11 = ""
 
-        
+        answer12 = ''
+        if now in list(sun_sign.eclipse_date):
+            eclipse_name = list(sun_sign[sun_sign.eclipse_date == now].eclipse_text)[0]
+            answer12 = f'*{eclipse_name} в {list(sun_sign[sun_sign.eclipse_date == now].eclipse_time)[0]}*\n\n'
+        else:
+            answer12 = ""
 
-        answer = answer0 + answer4 + answer5 + answer1 + answer9 + \
+        answer = answer0 + answer12 + answer4 + answer5 + answer1 + answer9 + \
             answer2 + answer3 + answer7 + answer8 + answer10 + answer6 +answer11
 
         bot.send_message(message.chat.id, text=answer,
@@ -420,7 +431,14 @@ def message_reply(message):
         else:
             answer11 = ""
 
-        answer = answer0 + answer4 + answer5 + answer1 + answer9 + \
+        answer12 = ''
+        if tomorrow in list(sun_sign.eclipse_date):
+            eclipse_name = list(sun_sign[sun_sign.eclipse_date == tomorrow].eclipse_text)[0]
+            answer12 = f'*{eclipse_name} в {list(sun_sign[sun_sign.eclipse_date == tomorrow].eclipse_time)[0]}*\n\n'
+        else:
+            answer12 = ""
+
+        answer = answer0 + answer12 + answer4 + answer5 + answer1 + answer9 + \
             answer2 + answer3 + answer7 + answer8 + answer10 + answer6 + answer11
 
         bot.send_message(message.chat.id, text=answer,
@@ -431,9 +449,12 @@ def message_reply(message):
         markup.row(telebot.types.InlineKeyboardButton(
             text='🕉️ Джйотиш (ссылка на сайт)', url='https://www.astro-analysis.net'))
         markup.row(telebot.types.InlineKeyboardButton(
-            text='🫶 Astro-analysis (ссылка на канал)', url='https://t.me/astro_analysis'))
-        bot.send_message(message.chat.id, text='🔭 Узнай больше о ведической астрологии, Мухурте (выборе благоприятного времени) и персональном календаре по ссылке:',
-                         reply_markup=markup, parse_mode='Markdown')
+            text='⭐ Astro-analysis (ссылка на сайт - визитку)', url='https://astro-analysis.tb.ru'))
+        markup.row(telebot.types.InlineKeyboardButton(
+            text='🙏 Поддержи бота AstroGoodDay!', url='https://pay.cloudtips.ru/p/520a11b1'))
+        text='🔭 Узнай больше о ведической астрологии, Мухурте (выборе благоприятного времени) и персональном календаре по ссылке:'
+        with open('res/photo_2022-08-25_17-30-00.jpg', 'rb') as photo:
+            bot.send_photo(message.chat.id, photo, caption=text, reply_markup=markup, parse_mode='Markdown')
 
     elif message.text == '🌼 Другая дата':
         bot.send_message(
@@ -570,7 +591,14 @@ def message_reply(message):
         else:
             answer11 = ""
 
-        answer = answer0 + answer4 + answer5 + answer1 + answer9 + \
+        answer12 = ''
+        if date in list(sun_sign.eclipse_date):
+            eclipse_name = list(sun_sign[sun_sign.eclipse_date == date].eclipse_text)[0]
+            answer12 = f'*{eclipse_name} в {list(sun_sign[sun_sign.eclipse_date == date].eclipse_time)[0]}*\n\n'
+        else:
+            answer12 = ""
+
+        answer = answer0 + answer12 + answer4 + answer5 + answer1 + answer9 + \
             answer2 + answer3 + answer7 + answer8 + answer10 + answer6 + answer11
 
         bot.send_message(message.chat.id, text=answer,
@@ -585,7 +613,7 @@ def message_reply(message):
     users = users + [message.from_user.id,
                      message.from_user.first_name, message.from_user.last_name]
     print(users)
-
+    logging.info(f'Подписчик {message.from_user.first_name} {message.from_user.last_name}, id - {message.from_user.id} входил в бот.')
 
 @bot.callback_query_handler(func=lambda call: True)
 def query_handler(call):
@@ -608,8 +636,9 @@ def query_handler(call):
                            telebot.types.KeyboardButton(text='☀️ Прогноз на завтра'))
                 markup.row(telebot.types.KeyboardButton(text='🌼 Другая дата'),
                            telebot.types.KeyboardButton(text='🔭 О ведической астрологии'))
-                bot.send_message(
-                    call.message.chat.id, text=f"Привет {call.from_user.first_name}! Я *АстроБот* 😇, расскажу какой сегодня день! Выбери, что тебе интересно узнать прямо сейчас!", reply_markup=markup, parse_mode='Markdown')
+                text=f"Привет {call.from_user.first_name}! Я *АстроБот* 😇, расскажу какой сегодня день! Выбери, что тебе интересно узнать прямо сейчас!"
+                with open('res/photo_2022-08-25_15-12-28.jpg', 'rb') as photo:
+                    bot.send_photo(call.message.chat.id, photo, caption=text, reply_markup=markup, parse_mode='Markdown')
             else:
                 markup = telebot.types.InlineKeyboardMarkup()
                 button1 = telebot.types.InlineKeyboardButton(
@@ -737,5 +766,6 @@ def query_handler(call):
             call.message.chat.id, call.message.message_id)
         bot.delete_message(call.message.chat.id, call.message.message_id)
 
-
+logging.info('START')
 bot.infinity_polling()
+
