@@ -23,6 +23,8 @@ carana_key = pd.read_csv('res/carana_key.csv', delimiter=';')
 sign = pd.read_csv('res/sign.csv', delimiter=';')
 sign_key = pd.read_csv('res/sign_key.csv', delimiter=';')
 sun_sign = pd.read_csv('res/sun_sign.csv', delimiter=';')
+yoga_comb = pd.read_csv('res/yoga_all.csv', delimiter=';')
+yoga_comb_key = pd.read_csv('res/yoga_all_key.csv', delimiter=';')
 
 
 def today():
@@ -300,6 +302,8 @@ def message_reply(message):
             text=f'💫 Накшатра {", ".join(nakshatra_names_1)} подробно', callback_data=1))
         markup.add(telebot.types.InlineKeyboardButton(
             text=' 🌙 Карана / ✨ Йога подробно', callback_data=2))
+        markup.add(telebot.types.InlineKeyboardButton(
+            text='🎁 Комбинационные йоги', callback_data=8))
 
         answer0 = f'Cегодня - *{now}*\n\n'
 
@@ -375,6 +379,8 @@ def message_reply(message):
             text=f'💫 Накшатра {", ".join(nakshatra_names_2)} подробно', callback_data=3))
         markup.add(telebot.types.InlineKeyboardButton(
             text=' 🌙 Карана / ✨ Йога подробно', callback_data=4))
+        markup.add(telebot.types.InlineKeyboardButton(
+            text='🎁 Комбинационные йоги', callback_data=9))
 
         answer0 = f'Завтра - *{tomorrow}*\n\n'
 
@@ -461,6 +467,7 @@ def message_reply(message):
             message.chat.id, text=f'🗓️ Введите дату в формате *ДД.ММ.ГГГГ* (например 07.09.2022) в диапазоне с {now} по {list(yoga.yoga_date)[-1]}', parse_mode='Markdown')
 
     elif (message.text in list(tithi.tithi_date)) and (bot.get_chat_member('@astro_analysis', message.from_user.id).status) != "left":
+        global date
         date = message.text
         date_weekday = datetime.datetime.strptime(date, '%d.%m.%Y').weekday()
         date1 = (datetime.datetime.strptime(date, '%d.%m.%Y') -
@@ -535,6 +542,8 @@ def message_reply(message):
             text=f'💫 Накшатра {", ".join(nakshatra_names_3)} подробно', callback_data=5))
         markup.add(telebot.types.InlineKeyboardButton(
             text=' 🌙 Карана / ✨ Йога подробно', callback_data=6))
+        markup.add(telebot.types.InlineKeyboardButton(
+            text='🎁 Комбинационные йоги', callback_data=10))
 
         answer0 = f'Прогноз на *{date}*\n\n'
 
@@ -765,6 +774,69 @@ def query_handler(call):
         bot.edit_message_reply_markup(
             call.message.chat.id, call.message.message_id)
         bot.delete_message(call.message.chat.id, call.message.message_id)
+
+    elif call.data == '8':
+        markup = telebot.types.InlineKeyboardMarkup()
+        markup.row(telebot.types.InlineKeyboardButton(
+            text='🔙 В начало', callback_data=7))
+
+        yoga_comb_today1 = list(yoga_comb[yoga_comb.yoga_date == now].yoga_name)
+        yoga_comb_time_today_on1 = list(yoga_comb[yoga_comb.yoga_date == now].yoga_time_on)
+        yoga_comb_time_today_off1 = list(yoga_comb[yoga_comb.yoga_date == now].yoga_time_off)
+        
+        answer = ""
+        if len(yoga_comb_today1)>0:
+            for i in range(len(yoga_comb_today1)):
+                answer = answer + \
+                    f"{list(yoga_comb_key[yoga_comb_key.yoga_name == yoga_comb_today1[i]].yoga_text_small)[0]} *{yoga_comb_today1[i]}* ({list(yoga_comb[yoga_comb.yoga_date == now].yoga_text)[i]}) начинается *{yoga_comb_time_today_on1[i]}* и длится до *{yoga_comb_time_today_off1[i]}*.\nПродолжительность - *{list(yoga_comb[yoga_comb.yoga_date == now].yoga_len)[i]}* час.\n\n{list(yoga_comb_key[yoga_comb_key.yoga_name == yoga_comb_today1[i]].yoga_text)[0]}\n\n"
+
+            bot.send_message(call.message.chat.id, text=answer,
+                            parse_mode='Markdown', reply_markup=markup)
+        else:
+            bot.send_message(call.message.chat.id, text="📍 Комбинационных йог на текущий день не обнаружено",
+                            parse_mode='Markdown', reply_markup=markup)
+
+    elif call.data == '9':
+        markup = telebot.types.InlineKeyboardMarkup()
+        markup.row(telebot.types.InlineKeyboardButton(
+            text='🔙 В начало', callback_data=7))
+
+        yoga_comb_tomorrow1 = list(yoga_comb[yoga_comb.yoga_date == tomorrow].yoga_name)
+        yoga_comb_time_tomorrow_on1 = list(yoga_comb[yoga_comb.yoga_date == tomorrow].yoga_time_on)
+        yoga_comb_time_tomorrow_off1 = list(yoga_comb[yoga_comb.yoga_date == tomorrow].yoga_time_off)
+        
+        answer = ""
+        if len(yoga_comb_tomorrow1)>0:
+            for i in range(len(yoga_comb_tomorrow1)):
+                answer = answer + \
+                    f"{list(yoga_comb_key[yoga_comb_key.yoga_name == yoga_comb_tomorrow1[i]].yoga_text_small)[0]} *{yoga_comb_tomorrow1[i]}* ({list(yoga_comb[yoga_comb.yoga_date == tomorrow].yoga_text)[i]}) начинается *{yoga_comb_time_tomorrow_on1[i]}* и длится до *{yoga_comb_time_tomorrow_off1[i]}*.\nПродолжительность - *{list(yoga_comb[yoga_comb.yoga_date == tomorrow].yoga_len)[i]}* час.\n\n{list(yoga_comb_key[yoga_comb_key.yoga_name == yoga_comb_tomorrow1[i]].yoga_text)[0]}\n\n"
+
+            bot.send_message(call.message.chat.id, text=answer,
+                            parse_mode='Markdown', reply_markup=markup)
+        else:
+            bot.send_message(call.message.chat.id, text="📍 Комбинационных йог на текущий день не обнаружено",
+                            parse_mode='Markdown', reply_markup=markup)
+
+    elif call.data == '10':
+        markup = telebot.types.InlineKeyboardMarkup()
+        markup.row(telebot.types.InlineKeyboardButton(
+            text='🔙 В начало', callback_data=7))
+
+        yoga_comb_date1 = list(yoga_comb[yoga_comb.yoga_date == date].yoga_name)
+        yoga_comb_time_date_on1 = list(yoga_comb[yoga_comb.yoga_date == date].yoga_time_on)
+        yoga_comb_time_date_off1 = list(yoga_comb[yoga_comb.yoga_date == date].yoga_time_off)
+        
+        answer = ""
+        if len(yoga_comb_date1)>0:
+            for i in range(len(yoga_comb_date1)):
+                answer = answer + \
+                    f"{list(yoga_comb_key[yoga_comb_key.yoga_name == yoga_comb_date1[i]].yoga_text_small)[0]} *{yoga_comb_date1[i]}* ({list(yoga_comb[yoga_comb.yoga_date == date].yoga_text)[i]}) начинается *{yoga_comb_time_date_on1[i]}* и длится до *{yoga_comb_time_date_off1[i]}*.\nПродолжительность - *{list(yoga_comb[yoga_comb.yoga_date == date].yoga_len)[i]}* час.\n\n{list(yoga_comb_key[yoga_comb_key.yoga_name == yoga_comb_date1[i]].yoga_text)[0]}\n\n"
+
+            bot.send_message(call.message.chat.id, text=answer,
+                            parse_mode='Markdown', reply_markup=markup)
+        else:
+            bot.send_message(call.message.chat.id, text="📍 Комбинационных йог на текущий день не обнаружено",
+                            parse_mode='Markdown', reply_markup=markup)
 
 logging.info('START')
 bot.infinity_polling()
