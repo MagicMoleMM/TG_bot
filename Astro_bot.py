@@ -274,7 +274,7 @@ def start_message(message):
                    telebot.types.KeyboardButton(text='☀️ Прогноз на завтра'))
         markup.row(telebot.types.KeyboardButton(text='🌼 Другая дата'),
                    telebot.types.KeyboardButton(text='🔭 О ведической астрологии'))
-        text=f"Привет {message.from_user.first_name}! Я *АстроБот* 😇, расскажу какой сегодня день! Выбери, что тебе интересно узнать прямо сейчас!"
+        text=f"Привет {message.from_user.first_name}! Я *АстроБот* 😇, расскажу какой сегодня день! Выбери в меню, что тебе интересно узнать прямо сейчас!\nЕсли кнопки меню скрыты, используй значок 🎛 рядом с клавиатурой, чтобы их открыть."
         with open('res/photo_2022-08-25_15-12-28.jpg', 'rb') as photo:
             bot.send_photo(message.chat.id, photo, caption=text, reply_markup=markup, parse_mode='Markdown')
 
@@ -289,7 +289,7 @@ def start_message(message):
         markup.add(button1, button2)
         bot.send_message(
             message.chat.id, '☘️ Для продолжения работы подпишитесь на канал по ведической астрологии Astro-analysis', reply_markup=markup)
-    logging.info(f'Подписчик {message.from_user.first_name} {message.from_user.last_name}, id - {message.from_user.id}  start.')
+    logging.info(f'User {message.from_user.first_name} {message.from_user.last_name}, id - {message.from_user.id}  start.')
 
 @bot.message_handler(content_types='text')
 def message_reply(message):
@@ -609,11 +609,11 @@ def message_reply(message):
         bot.send_message(
             message.chat.id, text=f'Даты {date} нет в списке, 🗓️ введите дату в формате *ДД.ММ.ГГГГ* (например 07.09.2022) в диапазоне с {now} по {list(yoga.yoga_date)[-1]}\nИли Вы не подписаны на канал Astro-analysis', parse_mode='Markdown')
 
-    global users
-    users = users + [message.from_user.id,
-                     message.from_user.first_name, message.from_user.last_name]
-    print(users)
-    logging.info(f'Подписчик {message.from_user.first_name} {message.from_user.last_name}, id - {message.from_user.id} входил в бот.')
+    # global users
+    # users = users + [message.from_user.id,
+    #                  message.from_user.first_name, message.from_user.last_name]
+    # print(users)
+    logging.info(f'User {message.from_user.first_name} {message.from_user.last_name}, id - {message.from_user.id} enter in bot.')
 
 @bot.callback_query_handler(func=lambda call: True)
 def query_handler(call):
